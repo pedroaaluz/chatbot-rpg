@@ -356,6 +356,8 @@ export class Bot {
 
     this.questions[questionId] = {
       ...question,
+      finished: true,
+      answer
     };
 
     return question;
