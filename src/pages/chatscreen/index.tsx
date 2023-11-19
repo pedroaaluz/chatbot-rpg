@@ -4,12 +4,18 @@ import "./index.css";
 import { MessageBox } from "../../components/messageBox";
 import { Bot } from "../../classes/bot";
 import type { IBotQuestion } from "../../types/IQuestion";
+import type { IStatusRules } from "../../types/IStatusRules";
 import { Interpreter } from "../../classes/interpreter";
+import rebel from "./../../images/rebelde.jpeg";
+import contrabandist from "./../../images/contrabandista.png";
+import jedi from "./../../images/jedi.jpg";
+import kenobi from "./../../images/kenobi.jpg";
 
 interface Message {
   messageId: number;
   text: string;
   isBot: boolean;
+  image?: string;
 }
 
 const bot = new Bot(new Interpreter());
@@ -25,6 +31,7 @@ export const ChatScreen: React.FC = () => {
 
   const [newMessage, setNewMessage] = useState("");
   const [botQuestion, setBotQuestion] = useState<IBotQuestion>();
+  const [finalStatus, setFinalStatus] = useState<IStatusRules>();
 
   const inputRef = useRef<HTMLDivElement>(null);
 
@@ -33,24 +40,12 @@ export const ChatScreen: React.FC = () => {
   };
 
   const sendMessage = () => {
-    if (newMessage.trim() === "") return;
+    if (newMessage.trim() === "" || finalStatus) return;
 
-    const nextQuestion = bot.getNextQuestion();
-
-    if (!nextQuestion) {
-      console.log("acabou as perguntas");
-      addMessages([
-        {
-          messageId: messages.length + 1,
-          isBot: true,
-          text: "Inspetor, irei analisar as perguntas.",
-        },
-      ]);
-      return;
-    }
-
+    // primeira interação
     if (!botQuestion) {
-      setBotQuestion(nextQuestion);
+      const firstQuestion = bot.getNextQuestion();
+      setBotQuestion(firstQuestion);
 
       addMessages([
         {
@@ -60,14 +55,16 @@ export const ChatScreen: React.FC = () => {
         },
         {
           messageId: messages.length + 2,
-          text: nextQuestion.question,
+          text: firstQuestion!?.question,
           isBot: true,
         },
       ]);
 
-      return
+      setNewMessage("");
+      return;
     }
 
+    // interações restantes
     const response = bot.responseQuestion(botQuestion!.id, newMessage);
 
     if (!response) {
@@ -78,18 +75,51 @@ export const ChatScreen: React.FC = () => {
           isBot: false,
         },
         {
-          messageId: messages.length + 1,
+          messageId: messages.length + 2,
           isBot: true,
           text: "Inspetor, não me faça perder tempo! Seja claro e direto nas respostas.",
         },
       ]);
 
+      setNewMessage("");
+
       return;
     }
 
-    setBotQuestion(nextQuestion);
+    const hasFinalStatus = bot.getFinalStatus();
 
-    if (!nextQuestion) return;
+    if (hasFinalStatus) {
+      const imageSelector = {
+        kenobi,
+        contrabandist,
+        rebel,
+        imperial: rebel,
+        jedi,
+      };
+
+      addMessages([
+        {
+          messageId: messages.length + 1,
+          text: newMessage,
+          isBot: false,
+        },
+        {
+          messageId: messages.length + 2,
+          isBot: true,
+          text: hasFinalStatus.message,
+          image: imageSelector[hasFinalStatus.status],
+        },
+      ]);
+
+      setFinalStatus(hasFinalStatus);
+
+      setNewMessage("");
+      return;
+    }
+
+    const nextQuestion = bot.getNextQuestion();
+
+    setBotQuestion(nextQuestion);
 
     addMessages([
       {
@@ -99,7 +129,7 @@ export const ChatScreen: React.FC = () => {
       },
       {
         messageId: messages.length + 2,
-        text: botQuestion!.question,
+        text: nextQuestion!?.question,
         isBot: true,
       },
     ]);
@@ -137,6 +167,7 @@ export const ChatScreen: React.FC = () => {
                 id={message.messageId}
                 isBot={message.isBot}
                 text={message.text}
+                image={message.image}
               />
             );
           })}

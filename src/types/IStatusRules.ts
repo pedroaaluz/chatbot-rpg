@@ -1,8 +1,6 @@
-interface conditions {
-    status: string;
-    message: string;
-    conditions: Record<number,string>[]
-  }
-  
-export type IStatusRules = Record<string, conditions>
+export type IStatusRules ={
+  status:  'kenobi' | 'contrabandist' |'rebel' |  'jedi' | 'imperial';
+  message: string;
+  conditions: Record<number,string>[]
+}
   

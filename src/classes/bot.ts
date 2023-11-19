@@ -5,6 +5,7 @@ import { Interpreter } from "./interpreter";
 export class Bot {
   questions: IBotQuestion[] = [];
   statusRules: IStatusRules[] = [];
+  answersHistory: Record<number, string> = {};
 
   constructor(private readonly interpreter: Interpreter) {
     this.questions = [
@@ -101,15 +102,7 @@ export class Bot {
             value: "no",
           },
           {
-            regex: /\be um nativo\b/g,
-            value: "yes",
-          },
-          {
-            regex: /\bum nativo\b/g,
-            value: "yes",
-          },
-          {
-            regex: /\bele e um nativo\b/g,
+            regex: /\bsim\b/g,
             value: "yes",
           },
           {
@@ -133,6 +126,10 @@ export class Bot {
           {
             regex: /\bnao\b/g,
             value: "no",
+          },
+          {
+            regex: /\bsim\b/g,
+            value: "yes",
           },
           {
             regex: /\be um nativo\b/g,
@@ -171,142 +168,135 @@ export class Bot {
       },
     ];
 
+    this.answersHistory = {};
+
     this.statusRules = [
       {
-        contrabandist: {
-          status: "contrabandista",
-          message:
-            "Um contrabandista, verifique se ele pode ser util, caso nao seja livre-se dele.",
-          conditions: [
-            /**
+        status: "contrabandist",
+        message:
+          "Um contrabandista, verifique se ele pode ser util, caso nao seja livre-se dele.",
+        conditions: [
+          /**
             SE Nível de colaboração com o Império = Baixo
             E É nativo do planeta = Não
             E É O OBI WAN KENOBI? = Não
             E Possui comportamento anti social = Não
           */
-            {
-              0: "no",
-              2: "low",
-              3: "no",
-              4: "no",
-            },
-            /**
+          {
+            0: "no",
+            2: "low",
+            3: "no",
+            4: "no",
+          },
+          /**
             SE Nível de colaboração com o Império = Alto
             E Possui comportamento anti social = Sim
             E É O OBI WAN KENOBI? = Não
             */
-            {
-              0: "no",
-              2: "high",
-              3: "yes",
-            },
-            /**
+          {
+            0: "no",
+            2: "high",
+            3: "yes",
+          },
+          /**
             SE Nível de colaboração com o Império = Moderado
             E É O OBI WAN KENOBI? = Não
             E Distância da cidade para sua casa = Longe
             E Possui ficha criminal = Sim
             ENTÃO Suspeito de ser = Contrabandista
             */
-            {
-              0: "no",
-              1: "farway",
-              2: "medium",
-              5: "yes",
-            },
-          ],
-        },
+          {
+            0: "no",
+            1: "farway",
+            2: "medium",
+            5: "yes",
+          },
+        ],
       },
       {
-        rebel: {
-          message:
-            "É uma escória rebelde. Bom trabalho! Obtenha o máximo de informação possível e livre-se dele depois!",
-          status: "rebelde",
-          conditions: [
-            /**
+        message:
+          "É uma escória rebelde. Bom trabalho! Obtenha o máximo de informação possível e livre-se dele depois!",
+        status: "rebel",
+        conditions: [
+          /**
             SE Nível de colaboração com o Império = Baixo
             E É nativo do planeta = Sim
             E É O OBI WAN KENOBI? = Não
             */
-            {
-              0: "no",
-              2: "low",
-              4: "yes",
-            },
-            /**
+          {
+            0: "no",
+            2: "low",
+            4: "yes",
+          },
+          /**
             SE Nível de colaboração com o Império = Moderado
             E É O OBI WAN KENOBI? = Não
             E Distância da cidade para sua casa = Longe
             E Possui ficha criminal = Não
             E É nativo do planeta = Não
             */
-            {
-              0: "no",
-              1: "farway",
-              2: "low",
-              4: "no",
-              5: "no",
-            },
-          ],
-        },
+          {
+            0: "no",
+            1: "farway",
+            2: "low",
+            4: "no",
+            5: "no",
+          },
+        ],
       },
       {
         // SE É O OBI WAN KENOBI? = Sim
-        kenobi: {
-          status: "kenobi",
-          message:
-            "É O OBI WAN KENOBI? ESTAMOS CHAMANDO O VADER, AGUARDE E PREPARE, HOJE ELE IRAR CAIR!",
-          conditions: [
-            {
-              0: "yes",
-            },
-          ],
-        },
+        status: "kenobi",
+        message:
+          "É O OBI WAN KENOBI? ESTAMOS CHAMANDO O VADER, AGUARDE E PREPARE-SE, HOJE ELE IRAR CAIR!",
+        conditions: [
+          {
+            0: "yes",
+          },
+        ],
       },
       {
-        jedi: {
-          status: "jedi",
-          message:
-            "Um jedi, bem perculiar, estamos enviando inquisidores, aguarde novas ordens e não morra! Jedis são feiticeiros traiçoeiros...",
-          conditions: [
-            /**
+        status: "jedi",
+        message:
+          "Um jedi, bem perculiar, estamos enviando inquisidores, aguarde novas ordens e não morra! Jedis são feiticeiros traiçoeiros...",
+        conditions: [
+          /**
             E Nível de colaboração com o Império = Baixo
             E É nativo do planeta = Não
             E É O OBI WAN KENOBI? = Não
             E Possui comportamento anti social = Sim
             */
-            {
-              0: "no",
-              2: "low",
-              3: "no",
-              4: "no",
-            },
-          ],
-        },
+          {
+            0: "no",
+            2: "low",
+            3: "no",
+            4: "no",
+          },
+        ],
       },
       {
-        imperial: {
-          conditions: [
-            /**
+        conditions: [
+          /**
               SE Nível de colaboração com o Império = Moderado
               E É O OBI WAN KENOBI? = Não
               E Distância da cidade para sua casa = Perto
             */
-            {
-              0: "no",
-              1: "near",
-              2: "medium",
-            },
-            /**
+          {
+            0: "no",
+            1: "near",
+            2: "medium",
+          },
+          /**
               SE Nível de colaboração com o Império = Alto
               E Possui comportamento anti social = Não
               E É O OBI WAN KENOBI? = Não
             */
-            {
-              0: "no",
-              2: "high",
-              3: "no",
-            },
-            /**
+          {
+            0: "no",
+            2: "high",
+            3: "no",
+          },
+          /**
             SE Nível de colaboração com o Império = Moderado
             E É O OBI WAN KENOBI? = Não
             E Distância da cidade para sua casa = Longe
@@ -314,31 +304,28 @@ export class Bot {
             E É nativo do planeta = Sim
             ENTÃO Suspeito de ser = Cidadão Leal ao Império 
             */
-            {
-              0: "no",
-              1: "farway",
-              5: "no",
-              4: "no",
-            },
-          ],
-          status: "cidadão imperial",
-          message:
-            "Você capturou um cidadão leal ao império? Incompetente! Aguarde pela sua punição!",
-        },
+          {
+            0: "no",
+            1: "farway",
+            5: "no",
+            4: "no",
+          },
+        ],
+        status: "imperial",
+        message:
+          "Você capturou um cidadão leal ao império? Incompetente! Aguarde pela sua punição!",
       },
     ];
   }
 
   getNextQuestion() {
-    const question = this.questions.find(({ finished }) => !finished)!;
+    const question = this.questions.find(({ finished }) => !finished);
 
     return question;
   }
 
   responseQuestion(questionId: number, userInput: string) {
     const userInputNormalized = this.interpreter.normalize(userInput);
-
-    console.log({ questionId, userInput, userInputNormalized });
 
     let question = this.questions[questionId];
 
@@ -349,19 +336,39 @@ export class Bot {
 
     if (!answer) return;
 
+    this.answersHistory[questionId] = answer;
+
     question = {
       ...this.questions[questionId],
       userInput,
+      finished: true,
+      answer,
     };
 
-    this.questions[questionId] = {
-      ...question,
-      finished: true,
-      answer
-    };
+    this.questions[questionId] = question;
 
     return question;
   }
 
-  getFinalStatus() {}
+  getFinalStatus() {
+
+    console.log(this.questions);
+
+    const statusMatch = this.statusRules.find((rule) => {
+      const {conditions} = rule;
+
+      const conditionMatch = conditions.find((condition) => {
+
+        const conditionKeys = Object.keys(condition);
+
+        const answersMatch = conditionKeys.filter((key) => condition[Number(key)] === this.answersHistory[Number(key)])
+
+        return answersMatch.length ===  conditionKeys.length;
+      }) 
+
+      return conditionMatch;
+    });
+
+    return statusMatch;
+  }
 }
