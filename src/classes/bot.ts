@@ -242,6 +242,11 @@ export class Bot {
             4: "no",
             5: "no",
           },
+          {
+            0: "no",
+            1: "near",
+            2: "medium",
+          }
         ],
       },
       {
@@ -276,6 +281,13 @@ export class Bot {
       },
       {
         conditions: [
+          {
+            0: "no",
+            1: "farway",
+            2: "low",
+            4: "no",
+            5: "no",
+          },
           /**
               SE Nível de colaboração com o Império = Moderado
               E É O OBI WAN KENOBI? = Não
